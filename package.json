@@ -1,15 +1,12 @@
 {
-  "name": "docsite",
+  "name": "Persona",
   "version": "0.0.0",
   "private": true,
   "scripts": {
     "docusaurus": "docusaurus",
-    "start": "docusaurus start",
-    "build": "docusaurus build",
     "swizzle": "docusaurus swizzle",
     "deploy": "docusaurus deploy",
     "clear": "docusaurus clear",
-    "serve": "docusaurus serve",
     "write-translations": "docusaurus write-translations",
     "write-heading-ids": "docusaurus write-heading-ids",
 
@@ -17,7 +14,11 @@
     "generate": "node scripts/generate.js",
     "stage": "node scripts/stage.js",
 
-    "prepare": "npm run convert && npm run generate && npm run stage"
+    "start": "docusaurus start",
+    "prepare": "npm run convert && npm run generate && npm run stage",
+    "dev": "npm run prepare && docusaurus start",
+    "build": "npm run prepare && docusaurus build",
+    "serve": "docusaurus serve"
   },
   "dependencies": {
     "@docusaurus/core": "3.10.2",
