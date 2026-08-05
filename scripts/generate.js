@@ -2,9 +2,21 @@
 
 import fs from "node:fs/promises";
 import path from "node:path";
+import readline from "node:readline/promises";
+import { stdin, stdout } from "node:process";
 
 const FILE_ROOT = "generated/files";
 const DOC_ROOT = "generated/docs";
+
+const ASK = process.argv.includes("--ask");
+const FORCE = process.argv.includes("--force");
+
+const rl = ASK
+    ? readline.createInterface({
+        input: stdin,
+        output: stdout,
+    })
+    : null;
 
 async function walk(dir) {
     const entries = await fs.readdir(dir, {
@@ -25,6 +37,15 @@ async function walk(dir) {
     return folders;
 }
 
+async function exists(file) {
+    try {
+        await fs.access(file);
+        return true;
+    } catch {
+        return false;
+    }
+}
+
 async function generateFolder(dir) {
 
     const relative = path.relative(FILE_ROOT, dir);
@@ -34,6 +55,34 @@ async function generateFolder(dir) {
     await fs.mkdir(outdir, {
         recursive: true,
     });
+
+    const outfile = path.join(outdir, "index.md");
+
+    if (await exists(outfile)) {
+
+        if (!FORCE) {
+
+            if (ASK) {
+
+                const answer = await rl.question(
+                    `Overwrite ${outfile}? [y/N] `
+                );
+
+                if (!/^y(es)?$/i.test(answer.trim())) {
+                    console.log(`Skip ${relative || "."}`);
+                    return;
+                }
+
+            } else {
+
+                console.log(`Skip ${relative || "."}`);
+                return;
+
+            }
+
+        }
+
+    }
 
     const entries = await fs.readdir(dir, {
         withFileTypes: true,
@@ -85,38 +134,34 @@ title: ${title}
             const pdf =
                 "/files/" +
                 [...(relative ? relative.split(path.sep) : []), file.name]
-                .map(encodeURIComponent)
-                .join("/");
+                    .map(encodeURIComponent)
+                    .join("/");
+
             md += `| ${stem} | [Open](${pdf}) |\n`;
         }
 
         md += "\n";
     }
 
-    await fs.writeFile(
-        path.join(outdir, "index.md"),
-        md
-    );
-}
+    await fs.writeFile(outfile, md);
 
-await fs.rm(DOC_ROOT, {
-    recursive: true,
-    force: true,
-});
+    console.log(`${await exists(outfile) ? "Overwrite" : "Generate"} ${relative || "."}`);
+}
 
 await fs.mkdir(DOC_ROOT, {
     recursive: true,
 });
 
-// Generate root page
 await generateFolder(FILE_ROOT);
 
-// Generate every subdirectory
 const dirs = await walk(FILE_ROOT);
 
 for (const dir of dirs) {
-    console.log("Generate", path.relative(FILE_ROOT, dir));
     await generateFolder(dir);
+}
+
+if (rl) {
+    await rl.close();
 }
 
 console.log("Done.");
