@@ -13,7 +13,8 @@
     "write-translations": "docusaurus write-translations",
     "write-heading-ids": "docusaurus write-heading-ids",
     "convert": "node scripts/convert.js",
-    "generate": "node scripts/generate.js"
+    "generate": "node scripts/generate.js",
+    "publish": "node scripts/publish.js"
   },
   "dependencies": {
     "@docusaurus/core": "3.10.2",

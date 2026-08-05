@@ -83,11 +83,10 @@ title: ${title}
             const stem = path.parse(file.name).name;
 
             const pdf =
-                "/" +
-                path
-                    .join("files", relative, file.name)
-                    .replaceAll("\\", "/");
-
+                "/files/" +
+                [...(relative ? relative.split(path.sep) : []), file.name]
+                .map(encodeURIComponent)
+                .join("/");
             md += `| ${stem} | [Open](${pdf}) |\n`;
         }
 
