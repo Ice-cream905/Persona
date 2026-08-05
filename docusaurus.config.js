@@ -47,7 +47,7 @@ const config = {
       ({
         docs: {
           path: "generated/docs",
-          routeBasePath: "/",
+          routeBasePath: "docs",
           sidebarPath: "./sidebars.js",
         },
         blog: {
