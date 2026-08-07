@@ -5,12 +5,13 @@
 // See: https://docusaurus.io/docs/api/docusaurus-config
 
 import {themes as prismThemes} from 'prism-react-renderer';
+import persona from "./persona.config.js";
 
 // This runs in Node.js - Don't use client-side code here (browser APIs, JSX...)
 
 /** @type {import('@docusaurus/types').Config} */
 const config = {
-  title: 'Persona',
+  title: persona.title,
   tagline: 'Lets begin the journey here',
   favicon: 'img/favicon.ico',
 
@@ -20,10 +21,10 @@ const config = {
   },
 
   // Set the production url of your site here
-  url: 'https://your-docusaurus-site.example.com',
+  url: persona.githubPages.url,
   // Set the /<baseUrl>/ pathname under which your site is served
   // For GitHub pages deployment, it is often '/<projectName>/'
-  baseUrl: '/',
+  baseUrl: persona.githubPages.baseUrl,
 
   // GitHub pages deployment config.
   // If you aren't using GitHub pages, you don't need these.
@@ -67,11 +68,8 @@ const config = {
         respectPrefersColorScheme: true,
       },
       navbar: {
-        title: 'Persona',
-        logo: {
-          alt: 'Persona Logo',
-          src: 'img/logo.png',
-        },
+        title: persona.title,
+        logo: persona.logo,
         items: [
           {
             type: 'docSidebar',
@@ -116,7 +114,7 @@ const config = {
             ],
           },
         ],
-        copyright: `Copyright © ${new Date().getFullYear()} Persona, Inc. Built with Docusaurus.`,
+        copyright: persona.copyright
       },
       prism: {
         theme: prismThemes.github,

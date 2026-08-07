@@ -93,7 +93,20 @@ async function generateFolder(dir) {
         .sort((a, b) => a.name.localeCompare(b.name));
 
     const files = entries
-        .filter(e => e.isFile() && e.name.toLowerCase().endsWith(".pdf"))
+        .filter(e => {
+            if (!e.isFile())
+                return false;
+
+            const ext = path.extname(e.name).toLowerCase();
+
+            return [
+                ".pdf",
+                ".doc",
+                ".docx",
+                ".ppt",
+                ".pptx",
+            ].includes(ext);
+        })
         .sort((a, b) => a.name.localeCompare(b.name));
 
     const title =
