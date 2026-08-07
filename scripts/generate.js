@@ -4,6 +4,7 @@ import fs from "node:fs/promises";
 import path from "node:path";
 import readline from "node:readline/promises";
 import { stdin, stdout } from "node:process";
+import persona from "../persona.config.js";
 
 const FILE_ROOT = "generated/files";
 const DOC_ROOT = "generated/docs";
@@ -17,6 +18,13 @@ const rl = ASK
         output: stdout,
     })
     : null;
+
+const OFFICE = new Set([
+    ".doc",
+    ".docx",
+    ".ppt",
+    ".pptx",
+]);
 
 async function walk(dir) {
     const entries = await fs.readdir(dir, {
@@ -57,28 +65,25 @@ async function generateFolder(dir) {
     });
 
     const outfile = path.join(outdir, "index.md");
+    const existed = await exists(outfile);
 
-    if (await exists(outfile)) {
+    if (existed && !FORCE) {
 
-        if (!FORCE) {
+        if (ASK) {
 
-            if (ASK) {
+            const answer = await rl.question(
+                `Overwrite ${outfile}? [y/N] `
+            );
 
-                const answer = await rl.question(
-                    `Overwrite ${outfile}? [y/N] `
-                );
-
-                if (!/^y(es)?$/i.test(answer.trim())) {
-                    console.log(`Skip ${relative || "."}`);
-                    return;
-                }
-
-            } else {
-
+            if (!/^y(es)?$/i.test(answer.trim())) {
                 console.log(`Skip ${relative || "."}`);
                 return;
-
             }
+
+        } else {
+
+            console.log(`Skip ${relative || "."}`);
+            return;
 
         }
 
@@ -97,15 +102,13 @@ async function generateFolder(dir) {
             if (!e.isFile())
                 return false;
 
-            const ext = path.extname(e.name).toLowerCase();
-
             return [
                 ".pdf",
                 ".doc",
                 ".docx",
                 ".ppt",
                 ".pptx",
-            ].includes(ext);
+            ].includes(path.extname(e.name).toLowerCase());
         })
         .sort((a, b) => a.name.localeCompare(b.name));
 
@@ -137,20 +140,37 @@ title: ${title}
 
         md += "## Documents\n\n";
 
-        md += "| Name | PDF |\n";
-        md += "| ---- | --- |\n";
+        md += "| Name | Open | Office |\n";
+        md += "| ---- | ---- | ------ |\n";
 
         for (const file of files) {
 
             const stem = path.parse(file.name).name;
+            const ext = path.extname(file.name).toLowerCase();
 
-            const pdf =
+            const fileUrl =
                 "/files/" +
                 [...(relative ? relative.split(path.sep) : []), file.name]
                     .map(encodeURIComponent)
                     .join("/");
 
-            md += `| ${stem} | [Open](${pdf}) |\n`;
+            let office = "-";
+
+            if (OFFICE.has(ext)) {
+
+                const publicUrl =
+                    persona.githubPages.url +
+                    persona.githubPages.baseUrl.replace(/\/$/, "") +
+                    fileUrl;
+
+                office =
+                    "https://view.officeapps.live.com/op/view.aspx?src=" +
+                    encodeURIComponent(publicUrl);
+
+                office = `[Office](${office})`;
+            }
+
+            md += `| ${stem} | [Open](${fileUrl}) | ${office} |\n`;
         }
 
         md += "\n";
@@ -158,7 +178,7 @@ title: ${title}
 
     await fs.writeFile(outfile, md);
 
-    console.log(`${await exists(outfile) ? "Overwrite" : "Generate"} ${relative || "."}`);
+    console.log(`${existed ? "Overwrite" : "Generate"} ${relative || "."}`);
 }
 
 await fs.mkdir(DOC_ROOT, {
@@ -173,8 +193,7 @@ for (const dir of dirs) {
     await generateFolder(dir);
 }
 
-if (rl) {
+if (rl)
     await rl.close();
-}
 
 console.log("Done.");
