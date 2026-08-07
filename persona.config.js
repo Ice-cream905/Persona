@@ -1,6 +1,6 @@
 export default {
     githubPages: {
-        url: "https://labnann.github.io",
+        url: "https://ice-cream905.github.io",
         baseUrl: "/persona",
     },
 
